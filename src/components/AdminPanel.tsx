@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Info } from 'lucide-react'
 import { getLocalLeads, getLocalMerchants, clearLocalSubmissions } from '../services/submission'
 import './AdminPanel.css'
 
@@ -33,7 +33,11 @@ export default function AdminPanel({ onBack }: Props) {
           <div className="adminActions"><button className="adminBtn adminBtnDanger" onClick={handleClear}>清空记录</button></div>
         </div>
         {msg && <div className="adminSuccess">{msg}</div>}
-        {renderTable(leads, '求职报名记录')}
+        <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 'var(--radius)', padding: '0.75rem 1rem', marginBottom: '1rem', fontSize: '0.8125rem', color: '#92400e', lineHeight: 1.5, display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
+          <Info size={16} style={{ flexShrink: 0, marginTop: '2px' }} />
+          <span>当前后台仅查看本机浏览器保存的提交记录。其他用户手机或电脑提交的数据不会自动同步到这里。如需统一查看全网提交，后续需要接入数据库或表单服务。</span>
+        </div>
+        {renderTable(leads, '美食咨询记录')}
         {renderTable(merchants, '商家入驻记录')}
       </div>
     </div>
