@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { CheckCircle, Phone, MessageCircle } from 'lucide-react'
+import { CheckCircle, Phone, MessageCircle, Copy, Check } from 'lucide-react'
 import { LeadFormData } from '../types'
 import { submitLead } from '../services/submission'
 import { siteConfig } from '../config/site'
@@ -18,6 +18,7 @@ function validatePhone(phone: string): boolean {
 
 export default function LeadForm({ expectedJob, onExpectedJobChange }: LeadFormProps) {
   const [submitted, setSubmitted] = useState(false)
+  const [copied, setCopied] = useState(false)
   const [formData, setFormData] = useState<LeadFormData>({ name: '', phone: '', age: '', expectedJob, acceptShift: '', expectedArea: '', note: '' })
   const [errors, setErrors] = useState<Partial<Record<keyof LeadFormData, string>>>({})
 
@@ -25,15 +26,12 @@ export default function LeadForm({ expectedJob, onExpectedJobChange }: LeadFormP
     if (expectedJob && expectedJob !== formData.expectedJob) setFormData(prev => ({ ...prev, expectedJob }))
   }, [expectedJob])
 
-  const handleExpectedJobChange = (val: string) => {
-    setFormData(prev => ({ ...prev, expectedJob: val }))
-    onExpectedJobChange(val)
+  const copyWechat = async () => {
+    try { await navigator.clipboard.writeText(siteConfig.wechatId); setCopied(true); setTimeout(() => setCopied(false), 2000) } catch { /* ignore */ }
   }
 
-  const handleChange = (field: keyof LeadFormData, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
-    if (errors[field]) setErrors(prev => ({ ...prev, [field]: '' }))
-  }
+  const handleExpectedJobChange = (val: string) => { setFormData(prev => ({ ...prev, expectedJob: val })); onExpectedJobChange(val) }
+  const handleChange = (field: keyof LeadFormData, value: string) => { setFormData(prev => ({ ...prev, [field]: value })); if (errors[field]) setErrors(prev => ({ ...prev, [field]: '' })) }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -51,16 +49,19 @@ export default function LeadForm({ expectedJob, onExpectedJobChange }: LeadFormP
       <div className={styles.success}>
         <div className={styles.successIcon}><CheckCircle size={28} /></div>
         <div className={styles.successTitle}>报名已提交</div>
-        <div className={styles.successDesc}>招聘顾问会尽快联系你。</div>
+        <div className={styles.successDesc}>可添加招聘顾问微信优先确认岗位</div>
         <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', marginTop: '0.75rem', flexWrap: 'wrap' }}>
           <a href={`tel:${siteConfig.phone}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.375rem', padding: '0.5rem 1rem', background: 'var(--color-orange)', color: 'white', borderRadius: 'var(--radius)', fontSize: '0.875rem', fontWeight: 600, textDecoration: 'none' }}>
             <Phone size={16} /> {siteConfig.phone}
           </a>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.375rem', padding: '0.5rem 1rem', background: '#10b981', color: 'white', borderRadius: 'var(--radius)', fontSize: '0.875rem', fontWeight: 600 }}>
-            <MessageCircle size={16} /> {siteConfig.wechatId}
-          </span>
+          <button onClick={copyWechat} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.375rem', padding: '0.5rem 1rem', background: '#10b981', color: 'white', borderRadius: 'var(--radius)', fontSize: '0.875rem', fontWeight: 600, border: 'none', cursor: 'pointer' }}>
+            {copied ? <Check size={16} /> : <Copy size={16} />}
+            {copied ? '已复制' : `微信 ${siteConfig.wechatId}`}
+          </button>
         </div>
-        <div style={{ fontSize: '0.8125rem', color: '#92400e', marginTop: '0.5rem', background: '#fffbeb', padding: '0.5rem', borderRadius: '6px', border: '1px solid #fde68a' }}>求职不收费，请勿向任何个人转账缴费</div>
+        <div style={{ fontSize: '0.8125rem', color: '#92400e', marginTop: '0.75rem', background: '#fffbeb', padding: '0.5rem 0.75rem', borderRadius: '6px', border: '1px solid #fde68a', lineHeight: 1.5 }}>
+          求职不收费，请勿向任何个人转账缴费
+        </div>
       </div>
     </div></section>
   )
@@ -92,8 +93,7 @@ export default function LeadForm({ expectedJob, onExpectedJobChange }: LeadFormP
             </div>
             <div className="form-group">
               <label>期望区域</label>
-              <select className="form-select" value={formData.expectedArea}
-                onChange={(e) => handleChange('expectedArea', e.target.value)}>
+              <select className="form-select" value={formData.expectedArea} onChange={(e) => handleChange('expectedArea', e.target.value)}>
                 <option value="">请选择区域</option>
                 {areaOptions.map(a => (<option key={a} value={a}>{a}</option>))}
               </select>
@@ -107,18 +107,12 @@ export default function LeadForm({ expectedJob, onExpectedJobChange }: LeadFormP
           <div className="form-group">
             <label>是否接受倒班</label>
             <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.25rem', flexWrap: 'wrap' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.9375rem', cursor: 'pointer' }}>
-                <input type="radio" name="acceptShift" value="接受倒班" checked={formData.acceptShift === '接受倒班'}
-                  onChange={(e) => handleChange('acceptShift', e.target.value)} /> 接受倒班
-              </label>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.9375rem', cursor: 'pointer' }}>
-                <input type="radio" name="acceptShift" value="只上长白班" checked={formData.acceptShift === '只上长白班'}
-                  onChange={(e) => handleChange('acceptShift', e.target.value)} /> 只上长白班
-              </label>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.9375rem', cursor: 'pointer' }}>
-                <input type="radio" name="acceptShift" value="都可以" checked={formData.acceptShift === '都可以'}
-                  onChange={(e) => handleChange('acceptShift', e.target.value)} /> 都可以
-              </label>
+              {['接受倒班','只上长白班','都可以'].map(opt => (
+                <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.9375rem', cursor: 'pointer' }}>
+                  <input type="radio" name="acceptShift" value={opt} checked={formData.acceptShift === opt}
+                    onChange={(e) => handleChange('acceptShift', e.target.value)} /> {opt}
+                </label>
+              ))}
             </div>
           </div>
           <div className="form-group">

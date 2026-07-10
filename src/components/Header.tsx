@@ -1,4 +1,5 @@
-import { Briefcase, User, Building2, Phone, MessageCircle } from 'lucide-react'
+import { useState } from 'react'
+import { Briefcase, User, Phone, MessageCircle, Copy, Check } from 'lucide-react'
 import { siteConfig } from '../config/site'
 import styles from './Header.module.css'
 
@@ -8,6 +9,16 @@ interface HeaderProps {
 }
 
 export default function Header({ onApplyClick, onPartnerClick }: HeaderProps) {
+  const [copied, setCopied] = useState(false)
+
+  const copyWechat = async () => {
+    try {
+      await navigator.clipboard.writeText(siteConfig.wechatId)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch { /* ignore */ }
+  }
+
   return (
     <header className={styles.header}>
       <div className={styles.headerInner}>
@@ -20,11 +31,12 @@ export default function Header({ onApplyClick, onPartnerClick }: HeaderProps) {
           <a href={`tel:${siteConfig.phone}`} className={`${styles.contactBtn} ${styles.contactPhone}`}>
             <Phone size={14} /><span>电话咨询</span>
           </a>
+          <button className={`${styles.contactBtn} ${styles.contactWechat}`} onClick={copyWechat} title="点击复制微信号">
+            {copied ? <Check size={14} /> : <Copy size={14} />}
+            <span>{copied ? '已复制' : '复制微信'}</span>
+          </button>
           <button className={`${styles.navBtn} ${styles.navBtnPrimary}`} onClick={onApplyClick}>
             <User size={14} /> 找工作
-          </button>
-          <button className={styles.navBtn} onClick={onPartnerClick}>
-            <Building2 size={14} /> 合作
           </button>
         </div>
       </div>
