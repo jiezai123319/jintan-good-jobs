@@ -1,107 +1,48 @@
 import { siteConfig } from '../config/site'
-import type { LeadFormData, PartnerFormData, AdminJob } from '../types'
-import { defaultJobs } from '../data/jobs'
+import type { LeadFormData, MerchantFormData, ShopItem } from '../types'
+import { defaultShops } from '../data/shops'
 
 const LEAD_KEY = 'jintan_lead_submissions'
-const PARTNER_KEY = 'jintan_partner_submissions'
-const JOBS_KEY = 'jintan_admin_jobs'
+const MERCHANT_KEY = 'jintan_merchant_submissions'
+const SHOPS_KEY = 'jintan_admin_shops'
 
-function getMeta(): Record<string, string> {
+function getMeta() {
   return { submittedAt: new Date().toISOString(), source: 'web', userAgent: navigator.userAgent, pageUrl: window.location.href }
 }
 
-export async function submitLead(data: LeadFormData): Promise<{ success: boolean }> {
-  const record = { ...data, ...getMeta() }
+export async function submitLead(data: LeadFormData) {
   const existing = JSON.parse(localStorage.getItem(LEAD_KEY) || '[]')
-  existing.push(record)
+  existing.push({ ...data, ...getMeta() })
   localStorage.setItem(LEAD_KEY, JSON.stringify(existing))
   if (siteConfig.api.enabled && siteConfig.api.leadEndpoint) {
-    try { const res = await fetch(siteConfig.api.leadEndpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(record) }); if (!res.ok) console.warn('[submitLead] API:', res.status) } catch (err) { console.warn('[submitLead] API call failed:', err) }
+    try { const r = await fetch(siteConfig.api.leadEndpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) }); if (!r.ok) console.warn('[submitLead] API:', r.status) } catch (e) { console.warn('[submitLead] fail:', e) }
   }
   return { success: true }
 }
 
-export async function submitPartner(data: PartnerFormData): Promise<{ success: boolean }> {
-  const record = { ...data, ...getMeta() }
-  const existing = JSON.parse(localStorage.getItem(PARTNER_KEY) || '[]')
-  existing.push(record)
-  localStorage.setItem(PARTNER_KEY, JSON.stringify(existing))
-  if (siteConfig.api.enabled && siteConfig.api.partnerEndpoint) {
-    try { const res = await fetch(siteConfig.api.partnerEndpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(record) }); if (!res.ok) console.warn('[submitPartner] API:', res.status) } catch (err) { console.warn('[submitPartner] API call failed:', err) }
+export async function submitMerchant(data: MerchantFormData) {
+  const existing = JSON.parse(localStorage.getItem(MERCHANT_KEY) || '[]')
+  existing.push({ ...data, ...getMeta() })
+  localStorage.setItem(MERCHANT_KEY, JSON.stringify(existing))
+  if (siteConfig.api.enabled && siteConfig.api.leadEndpoint) {
+    try { const r = await fetch(siteConfig.api.leadEndpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) }); if (!r.ok) console.warn('[submitMerchant] API:', r.status) } catch (e) { console.warn('[submitMerchant] fail:', e) }
   }
   return { success: true }
 }
 
-export function getLocalLeads(): any[] { return JSON.parse(localStorage.getItem(LEAD_KEY) || '[]') }
-export function getLocalPartners(): any[] { return JSON.parse(localStorage.getItem(PARTNER_KEY) || '[]') }
-export function clearLocalSubmissions(): void { localStorage.removeItem(LEAD_KEY); localStorage.removeItem(PARTNER_KEY) }
+export function getLocalLeads() { return JSON.parse(localStorage.getItem(LEAD_KEY) || '[]') }
+export function getLocalMerchants() { return JSON.parse(localStorage.getItem(MERCHANT_KEY) || '[]') }
+export function clearLocalSubmissions() { localStorage.removeItem(LEAD_KEY); localStorage.removeItem(MERCHANT_KEY) }
 
-export function exportAsCSV(records: any[]): string {
-  if (records.length === 0) return ''
-  const headers = Object.keys(records[0])
-  return [headers.join(','), ...records.map(r => headers.map(h => `"${String(r[h] ?? '').replace(/"/g, '""')}"`).join(','))].join('\n')
-}
-
-// === Admin Job CRUD ===
-
-function getNextId(jobs: AdminJob[]): number {
-  return jobs.length > 0 ? Math.max(...jobs.map(j => j.id)) + 1 : 1
-}
-
-export function getAdminJobs(): AdminJob[] {
-  const stored = localStorage.getItem(JOBS_KEY)
+export function getAdminShops(): ShopItem[] {
+  const stored = localStorage.getItem(SHOPS_KEY)
   if (stored) return JSON.parse(stored)
-  // First visit: save defaults to localStorage
-  localStorage.setItem(JOBS_KEY, JSON.stringify(defaultJobs))
-  return [...defaultJobs]
+  localStorage.setItem(SHOPS_KEY, JSON.stringify(defaultShops))
+  return [...defaultShops]
 }
-
-export function saveAdminJobs(jobs: AdminJob[]): void {
-  localStorage.setItem(JOBS_KEY, JSON.stringify(jobs))
-}
-
-export function addAdminJob(job: AdminJob): void {
-  const all = getAdminJobs()
-  job.id = getNextId(all)
-  all.push(job)
-  saveAdminJobs(all)
-}
-
-export function updateAdminJob(updated: AdminJob): void {
-  const all = getAdminJobs()
-  const idx = all.findIndex(j => j.id === updated.id)
-  if (idx !== -1) { all[idx] = updated; saveAdminJobs(all) }
-}
-
-export function deleteAdminJob(id: number): void {
-  const all = getAdminJobs().filter(j => j.id !== id)
-  saveAdminJobs(all)
-}
-
-export function toggleJobStatus(id: number): void {
-  const all = getAdminJobs()
-  const job = all.find(j => j.id === id)
-  if (job) { job.status = job.status === '上架' ? '下架' : '上架'; saveAdminJobs(all) }
-}
-
-export function exportJobsJSON(): string {
-  return JSON.stringify(getAdminJobs(), null, 2)
-}
-
-export function importJobsJSON(json: string): { success: boolean; message: string } {
-  try {
-    const data = JSON.parse(json)
-    if (!Array.isArray(data)) return { success: false, message: 'JSON 格式错误：需要数组' }
-    for (const item of data) {
-      if (!item.title || !item.salary) return { success: false, message: '每条岗位必须有 title 和 salary 字段' }
-    }
-    localStorage.setItem(JOBS_KEY, json)
-    return { success: true, message: `成功导入 ${data.length} 条岗位` }
-  } catch {
-    return { success: false, message: 'JSON 解析失败，请检查格式' }
-  }
-}
-
-export function resetToDefaultJobs(): void {
-  localStorage.removeItem(JOBS_KEY)
-}
+export function saveAdminShops(shops: ShopItem[]) { localStorage.setItem(SHOPS_KEY, JSON.stringify(shops)) }
+export function deleteAdminShop(id: number) { saveAdminShops(getAdminShops().filter(s => s.id !== id)) }
+export function toggleShopStatus(id: number) { const all = getAdminShops(); const s = all.find(x => x.id === id); if (s) { s.status = s.status === '上架' ? '下架' : '上架'; saveAdminShops(all) } }
+export function exportShopsJSON() { return JSON.stringify(getAdminShops(), null, 2) }
+export function importShopsJSON(json: string) { try { const d = JSON.parse(json); if (!Array.isArray(d)) return { success: false, message: 'JSON 格式错误' }; localStorage.setItem(SHOPS_KEY, json); return { success: true, message: `成功导入 ${d.length} 家店铺` } } catch { return { success: false, message: 'JSON 解析失败' } } }
+export function resetToDefaultShops() { localStorage.removeItem(SHOPS_KEY) }

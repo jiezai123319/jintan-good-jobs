@@ -1,10 +1,11 @@
+import { Store, Utensils, Star, Heart } from 'lucide-react'
 import styles from './Stats.module.css'
 
 const stats = [
-  { number: '36', label: '本周岗位' },
-  { number: '8', label: '合作企业' },
-  { number: '0元', label: '求职费用' },
-  { number: '金坛全区', label: '覆盖区域' },
+  { icon: Store, number: '15', label: '收录店铺' },
+  { icon: Utensils, number: '6', label: '美食分类' },
+  { icon: Star, number: '10', label: '必吃榜单' },
+  { icon: Heart, number: '0元', label: '免费入驻' },
 ]
 
 export default function Stats() {

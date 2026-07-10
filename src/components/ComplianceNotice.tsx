@@ -2,23 +2,19 @@ import { ShieldAlert } from 'lucide-react'
 import styles from './ComplianceNotice.module.css'
 
 const items = [
-  '平台不向求职者收取费用。',
-  '岗位薪资、班次、福利以企业或合作招聘方最终确认为准。',
-  '本站为本地招聘信息与报名服务平台，不冒充任何工厂官方招聘渠道。',
-  '涉及劳务派遣、人力资源服务时，请对接具备相关资质的合作方。'
+  '榜单信息由平台收集整理，仅供美食参考。',
+  '店铺营业时间、价格、菜品以现场实际为准。',
+  '本站为金坛本地美食推荐与信息服务平台。',
+  '商家入驻合作请通过官方微信联系。'
 ]
 
 export default function ComplianceNotice() {
   return (
     <section className={styles.section}>
       <div className={styles.inner}>
-        <h3 className={styles.title}>
-          <ShieldAlert size={16} /> 合规提示
-        </h3>
+        <h3 className={styles.title}><ShieldAlert size={16} /> 声明</h3>
         <ul className={styles.list}>
-          {items.map((item, i) => (
-            <li className={styles.item} key={i}>{item}</li>
-          ))}
+          {items.map((item, i) => (<li className={styles.item} key={i}>{item}</li>))}
         </ul>
       </div>
     </section>
