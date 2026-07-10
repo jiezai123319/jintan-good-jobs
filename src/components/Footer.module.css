@@ -1,0 +1,11 @@
+.footer { background: var(--color-blue); color: rgba(255,255,255,0.85); padding: 2rem 0; font-size: 0.8125rem; }
+.inner { max-width: 1100px; margin: 0 auto; padding: 0 16px; text-align: center; }
+.brand { font-size: 1.125rem; font-weight: 700; color: white; margin-bottom: 0.375rem; }
+.contactRow { display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; margin-bottom: 0.75rem; }
+.contactItem { display: inline-flex; align-items: center; gap: 0.375rem; color: rgba(255,255,255,0.85); font-size: 0.875rem; }
+.contactItem a { color: var(--color-orange); }
+.links { display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; margin-bottom: 0.75rem; }
+.link { color: rgba(255,255,255,0.7); transition: color 0.2s; }
+.link:hover { color: white; }
+.divider { color: rgba(255,255,255,0.3); }
+.copyright { color: rgba(255,255,255,0.5); line-height: 1.6; }
